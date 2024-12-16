@@ -5,10 +5,10 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # Copy the requirements file into the container (if you have one)
-COPY requirements.txt .
+COPY requirements .
 
 # Install any dependencies (if you have a requirements.txt)
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements
 
 # Copy the Python code into the container
 COPY . .
