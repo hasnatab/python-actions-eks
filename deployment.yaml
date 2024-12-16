@@ -19,3 +19,4 @@ spec:
           image: 778602549455.dkr.ecr.us-east-1.amazonaws.com/github-actions:latest
           ports:
             - containerPort: 8080
+          command: ["python", "calculator.py", "add", "2", "3"]
