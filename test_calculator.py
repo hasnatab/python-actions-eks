@@ -1,43 +1,32 @@
-import argparse
+# test_calculator.py
 
-# Define a function for each operation
-def add(a, b):
-    return a + b
+import subprocess
 
-def subtract(a, b):
-    return a - b
+def run_calculator(*args):
+    """Helper function to run the calculator script and return the output."""
+    result = subprocess.run(
+        ['python', 'calculator.py'] + list(args),
+        capture_output=True,
+        text=True
+    )
+    return result.stdout.strip()
 
-def multiply(a, b):
-    return a * b
+def test_addition():
+    result = run_calculator('add', '2', '3')
+    assert result == "Result: 5.0"
 
-def divide(a, b):
-    if b == 0:
-        return "Error: Division by zero is not allowed."
-    return a / b
+def test_subtraction():
+    result = run_calculator('subtract', '5', '3')
+    assert result == "Result: 2.0"
 
-# Parse the command-line arguments
-parser = argparse.ArgumentParser(description="Simple calculator")
-parser.add_argument('operation', choices=['add', 'subtract', 'multiply', 'divide'], help="Operation to perform")
-parser.add_argument('a', type=float, help="First operand")
-parser.add_argument('b', type=float, help="Second operand")
+def test_multiplication():
+    result = run_calculator('multiply', '2', '3')
+    assert result == "Result: 6.0"
 
-# If no arguments are passed, set default values
-args = parser.parse_args()
+def test_division():
+    result = run_calculator('divide', '6', '3')
+    assert result == "Result: 2.0"
 
-if not args.operation:
-    args.operation = 'add'
-    args.a = 2
-    args.b = 3
-
-# Perform the operation based on the parsed arguments
-if args.operation == 'add':
-    result = add(args.a, args.b)
-elif args.operation == 'subtract':
-    result = subtract(args.a, args.b)
-elif args.operation == 'multiply':
-    result = multiply(args.a, args.b)
-elif args.operation == 'divide':
-    result = divide(args.a, args.b)
-
-# Print the result
-print(f"Result: {result}")
+def test_division_by_zero():
+    result = run_calculator('divide', '6', '0')
+    assert result == "Result: Error: Division by zero is not allowed."
