@@ -29,9 +29,7 @@ jobs:
 
       - name: Lint with flake8
         run: |
-          # stop the build if there are Python syntax errors or undefined names
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
       - name: Test with pytest
@@ -42,7 +40,7 @@ jobs:
         run: |
           pyinstaller --onefile calculator.py
 
-      - name: Build & push Docker image
+      - name: Build & push Docker image to DockerHub
         uses: mr-smithers-excellent/docker-build-push@v6
         with:
           image: hasnatabk/github-actions
@@ -52,3 +50,33 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           context: .
           file: Dockerfile
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Authenticate Docker to ECR
+        run: |
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 778602549455.dkr.ecr.us-east-1.amazonaws.com
+
+      - name: Build & Push Docker Image to ECR
+        run: |
+          docker tag hasnatabk/github-actions:latest 778602549455.dkr.ecr.us-east-1.amazonaws.com/github-actions:latest
+          docker push 778602549455.dkr.ecr.us-east-1.amazonaws.com/github-actions:latest
+
+      - name: Set up kubectl
+        uses: aws-actions/eks-update-kubeconfig@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+          cluster-name: my-cluster
+
+      - name: Deploy to EKS
+        run: |
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
+          kubectl rollout status deployment/my-deployment
