@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
         - name: calculator
-          image: 778602549455.dkr.ecr.us-east-1.amazonaws.com/github-actions:v1
+          image: 778602549455.dkr.ecr.us-east-1.amazonaws.com/github-actions:latest
           ports:
             - containerPort: 8080
