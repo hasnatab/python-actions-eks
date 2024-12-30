@@ -22,7 +22,9 @@ jobs:
 
       # Install State Tool for ActiveState Runtime
       - name: Install State Tool (Linux)
-        run: sh <(curl -q https://platform.activestate.com/dl/cli/install.sh) -n
+        run: |
+          curl -q https://platform.activestate.com/dl/cli/install.sh | bash
+          echo "::add-path::/home/runner/.local/ActiveState/StateTool/release"
 
       - name: Update ActiveState Project
         run: state pull
