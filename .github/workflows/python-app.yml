@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+env:
+  ACTIVESTATE_CLI_CACHEDIR: ${{ github.workspace }}/.cache        
+  ACTIVESTATE_API_KEY: ${{ secrets.ACTIVESTATE_API_KEY }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,33 +20,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.10"
+      # Install State Tool for ActiveState Runtime
+      - name: Install State Tool (Linux)
+        run: sh <(curl -q https://platform.activestate.com/dl/cli/install.sh) -n
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install flake8 pytest pyinstaller
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Update ActiveState Project
+        run: state pull
+
+      - name: Cache ActiveState CLI
+        uses: actions/cache@v1
+        env:
+          cache-name: cache-platform-build
+        with:
+          path: ${{ env.ACTIVESTATE_CLI_CACHEDIR }}
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('activestate.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}
 
       - name: Lint with flake8
-        run: |
-          # stop the build if there are Python syntax errors or undefined names
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        run: state run lints
 
       - name: Test with pytest
-        run: |
-          pytest
+        run: state run tests
 
-      - name: Build binary with PyInstaller
-        run: |
-          pyinstaller --onefile calculator.py
-
-      - name: Build & push Docker image
+      - name: Build & push Docker image to DockerHub
         uses: mr-smithers-excellent/docker-build-push@v6
         with:
           image: hasnatabk/github-actions
@@ -52,3 +53,29 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           context: .
           file: Dockerfile
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Authenticate Docker to ECR
+        run: |
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 778602549455.dkr.ecr.us-east-1.amazonaws.com
+
+      - name: Build & Push Docker Image to ECR
+        run: |
+          docker tag hasnatabk/github-actions:latest 778602549455.dkr.ecr.us-east-1.amazonaws.com/github-actions:latest
+          docker push 778602549455.dkr.ecr.us-east-1.amazonaws.com/github-actions:latest
+
+      - name: Update kubeconfig for EKS
+        run: |
+          aws eks --region us-east-1 update-kubeconfig --name github-actions
+
+      - name: Deploy to EKS
+        run: |
+          kubectl apply -f deployment.yaml
+          kubectl apply -f service.yaml
+          kubectl rollout status deployment/calculator-app
