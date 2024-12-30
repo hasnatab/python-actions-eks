@@ -24,10 +24,12 @@ jobs:
       - name: Install State Tool (Linux)
         run: |
           curl -q https://platform.activestate.com/dl/cli/install.sh | bash
-          echo "export PATH=/home/runner/.local/ActiveState/StateTool/release:$PATH" >> $GITHUB_ENV
+          export PATH="/home/runner/.local/ActiveState/StateTool/release:$PATH"
 
       - name: Update ActiveState Project
-        run: state pull
+        run: |
+          export PATH="/home/runner/.local/ActiveState/StateTool/release:$PATH"
+          state pull
 
       - name: Cache ActiveState CLI
         uses: actions/cache@v1
