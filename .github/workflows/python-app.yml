@@ -40,6 +40,7 @@ jobs:
       - name: Lint with flake8
         run: state run lints
 
+
       - name: Test with pytest
         run: state run tests
 
@@ -73,6 +74,7 @@ jobs:
       - name: Update kubeconfig for EKS
         run: |
           aws eks --region us-east-1 update-kubeconfig --name github-actions
+
 
       - name: Deploy to EKS
         run: |
