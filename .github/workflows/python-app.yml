@@ -20,19 +20,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Install State Tool for ActiveState Runtime
+      # Install ActiveState CLI (StateTool)
       - name: Install State Tool (Linux)
-        run: |
-          curl -q https://platform.activestate.com/dl/cli/install.sh | bash
-          echo "Listing contents of ActiveState installation directory:"
-          ls -l /home/runner/.local/ActiveState/StateTool/release
-          export PATH="/home/runner/.local/ActiveState/StateTool/release:$PATH"
-          echo "Updated PATH: $PATH"
+        run: sh <(curl -q https://platform.activestate.com/dl/cli/install.sh) -n
 
+      # Authenticate with ActiveState (using the API key from GitHub Secrets)
+      - name: Authenticate with ActiveState
+        run: |
+          state auth --token ${{ secrets.ACTIVESTATE_API_KEY }}
+
+      # Checkout Project from ActiveState Platform (optional)
+      - name: Checkout ActiveState Project
+        run: |
+          state checkout hak158-org/first-project --runtime-path /opt/hak158-org/first-project
+          state use hak158-org/first-project
+
+      # Update ActiveState Project (use the runtime as needed)
       - name: Update ActiveState Project
         run: |
-          ls -l /home/runner/.local/ActiveState/StateTool/release
-          echo "Attempting to run state pull..."
           state pull
           
 
