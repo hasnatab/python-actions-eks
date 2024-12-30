@@ -20,26 +20,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Install ActiveState CLI (StateTool)
+      # Install State Tool for ActiveState Runtime
       - name: Install State Tool (Linux)
-        run: sh <(curl -q https://platform.activestate.com/dl/cli/w19880m01/install.sh)
-
-      # Authenticate with ActiveState (using the API key from GitHub Secrets)
-      - name: Authenticate with ActiveState
         run: |
-          state auth --token ${{ secrets.ACTIVESTATE_API_KEY }}
+          sh <(curl -q https://platform.activestate.com/dl/cli/install.sh) -n
+          source ~/.bashrc
 
-      # Checkout Project from ActiveState Platform (optional)
-      - name: Checkout ActiveState Project
-        run: |
-          state checkout hak158-org/first-project --runtime-path /opt/hak158-org/first-project
-          state use hak158-org/first-project
-
-      # Update ActiveState Project (use the runtime as needed)
       - name: Update ActiveState Project
-        run: |
-          state pull
-          
+        run: state pull
 
       - name: Cache ActiveState CLI
         uses: actions/cache@v1
@@ -53,7 +41,6 @@ jobs:
 
       - name: Lint with flake8
         run: state run lints
-
 
       - name: Test with pytest
         run: state run tests
@@ -88,7 +75,6 @@ jobs:
       - name: Update kubeconfig for EKS
         run: |
           aws eks --region us-east-1 update-kubeconfig --name github-actions
-
 
       - name: Deploy to EKS
         run: |
