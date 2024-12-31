@@ -40,10 +40,10 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}
 
       - name: Lint with flake8
-        run: state run lints
+        run: state run flake8
 
       - name: Test with pytest
-        run: state run tests
+        run: state run pytest
 
       - name: Build & push Docker image to DockerHub
         uses: mr-smithers-excellent/docker-build-push@v6
