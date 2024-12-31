@@ -30,7 +30,7 @@ jobs:
         run: |
           state pull
           state activate --default
-          echo "PATH=$(state export path)" >> $GITHUB_ENV
+          echo "PATH=$(state activate --default)" >> $GITHUB_ENV
 
 
       - name: Cache ActiveState CLI
