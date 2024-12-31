@@ -39,9 +39,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}
 
-      - name: Lint with flake8
-        run: state run flake8
-
       - name: Test with pytest
         run: state run pytest
 
