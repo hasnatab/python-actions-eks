@@ -27,11 +27,7 @@ jobs:
           echo "/home/runner/.local/ActiveState/StateTool/release/bin" >> $GITHUB_PATH
       
       - name: Activate ActiveState Runtime
-        run: |
-          state pull
-          state activate --default
-          echo "PATH=$(state activate --default)" >> $GITHUB_ENV
-
+        run: state pull
 
       - name: Cache ActiveState CLI
         uses: actions/cache@v1
@@ -44,10 +40,10 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}
 
       - name: Lint with flake8
-        run: flake8
+        run: state run lints
 
       - name: Test with pytest
-        run: pytest
+        run: state run tests
 
       - name: Build & push Docker image to DockerHub
         uses: mr-smithers-excellent/docker-build-push@v6
