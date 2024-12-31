@@ -5,12 +5,33 @@ scripts:
     language: python3
     value: |
       import textwrap
-      print(textwrap.dedent("""
+      print(textwrap.dedent(""" 
         Quick Start
-        -----------
-        * To add a package to your runtime, type "state install <package name>"
-        * Learn more about how to use the State Tool, type "state learn"
+        ----------- 
+        * To add a package to your runtime, type "state install <package name>" 
+        * Learn more about how to use the State Tool, type "state learn" 
       """))
+
+  - name: flake8
+    language: python3
+    value: |
+      import subprocess
+      result = subprocess.run(['flake8'], capture_output=True, text=True)
+      print(result.stdout)
+      if result.returncode != 0:
+          print(f"flake8 linting failed with return code {result.returncode}")
+          exit(result.returncode)
+
+  - name: pytest
+    language: python3
+    value: |
+      import subprocess
+      result = subprocess.run(['pytest'], capture_output=True, text=True)
+      print(result.stdout)
+      if result.returncode != 0:
+          print(f"pytest failed with return code {result.returncode}")
+          exit(result.returncode)
+
   - name: pip
     language: python3
     value: |
@@ -49,13 +70,10 @@ scripts:
             "search": "search",
         })
 
-        print("Could not shim your command as it is not supported by the State Tool.\n" + 
+        print("Could not shim your command as it is not supported by the State Tool.\n" +
               "Please check 'state --help' to find the best analog for the command you're trying to run.\n")
         configure_message()
 
 events:
-  # This is the ACTIVATE event, it will run whenever a new virtual environment is created (eg. by running `state activate`)
-  # On Linux and macOS this will be ran as part of your shell's rc file, so you can use it to set up aliases, functions, environment variables, etc.
   - name: ACTIVATE
     value: python3.exe $scripts.activationMessage.path()
-
